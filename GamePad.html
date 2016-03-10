@@ -6,8 +6,7 @@
         <script type="text/javascript" src="jquery-2.2.1.min.js"></script> 
     </head>
     
-	<script>	
-	//              0       1        2           3        4     5     6     7      8        9        10    11    12     13      14       15      16       17
+	<script>		
 	var buttons = ["X", "Circle", "Square", "Triangle", "L1", "R1", "L2", "R2", "Share", "Options", "L3", "R3", "Up", "Down", "Left", "Right", "Home", "Touchpad"];
     var previouslyPressed = [false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false];
 	var currentlyPressed = [false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false];
@@ -17,9 +16,8 @@
 	var buttonLog = "";
 
 	// Note: DFA charts use simplified mapping. Controller has 18 buttons, but we only care about 8 directions and punch + kick
+	var revisedMappings = ["Up", "Down", "Left", "Right", "Up-Right", "Down-Right", "Down-Left", "Up-Left", "Punch", "Kick"];
 	
-	//   0    1     2     3       4          5        6        7        8    9  
-	// [up, down, left, right, upright, downright, downleft, upleft, punch, kick]
   	var mappings = [ [0, 1, 0, 0, 0, 0, 0, 0, 0, 0], // state 0
 					 [0, 1, 0, 0, 0, 5, 2, 0, 0, 0], // state 1
 					 [0, 1, 3, 0, 0, 0, 0, 0, 0, 0], // state 2
@@ -46,6 +44,7 @@
 		
 		if (button === -1) return;
 		timeCounter = 0;
+		buttonLog += revisedMappings[button] + " ";
 		
 		currentPosition = mappings[currentPosition][button];
 		
@@ -61,19 +60,16 @@
 	
 	// Simplified Mappings only for diagonals
 	function diagonalMapping() {
+	
 		var button = -1;
 
 		if (currentlyPressed[12]) {
-			console.log("Up");
 			button = 0;
 		} else if (currentlyPressed[13]) {
-			console.log("Down");
 			button = 1;
 		} else if (currentlyPressed[14]) {
-			console.log("Left");
 			button = 2;
 		} else if (currentlyPressed[15]) {
-			console.log("Right");
 			button = 3;
 		} 
 
@@ -86,34 +82,24 @@
 		var button= -1;
 		
 		if (currentlyPressed[2] || currentlyPressed[3] || currentlyPressed[4] || currentlyPressed[5]) {
-			console.log("Punch");	
 			button = 8;
 		} else if (currentlyPressed[0] || currentlyPressed[1] || currentlyPressed[6] || currentlyPressed[7]) {
-			console.log("Kick");
 			button = 9;
 		} else if (currentlyPressed[12] && currentlyPressed[15]) {
-			console.log("UpRight");
 			button = 4;
 		} else if (currentlyPressed[13] && currentlyPressed[15]) {
-			console.log("DownRight");
 			button = 5;
 		} else if (currentlyPressed[13] && currentlyPressed[14]) {
-			console.log("DownLeft");
 			button = 6;
 		} else if (currentlyPressed[12] && currentlyPressed[14]) {
-			console.log("UpLeft");
 			button = 7;
 		} else if (currentlyPressed[12]) {
-			console.log("Up");
 			button = 0;
 		} else if (currentlyPressed[13]) {
-			console.log("Down");
 			button = 1;
 		} else if (currentlyPressed[14]) {
-			console.log("Left");
 			button = 2;
 		} else if (currentlyPressed[15]) {
-			console.log("Right");
 			button = 3;
 		} 
 		
@@ -129,6 +115,7 @@
 		if (timeCounter % 20 == 0) {
 			console.log("TimeCounter: " + timeCounter);
 			currentPosition = 0;
+			buttonLog = "";
 		}
 		
         for (var i = 0; i < DS4.buttons.length; i++) {
@@ -155,7 +142,7 @@
 				// A new button has been pressed,move DFA position
 				if (previouslyPressed[i] === false) { 
 				    determinePosition(false);
-					buttonLog += buttons[i] + " ";					
+				//	buttonLog += buttons[i] + " ";					
 				}
 				
 			} else {
