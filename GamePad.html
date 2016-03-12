@@ -24,11 +24,18 @@
 	var BLANKA = 1;
 	var fighters = ["Ryu", "Blanka"];	
 	
-	var specialMoveStates = [[4, 7, 11, 17, 21], [9, 8]];
-	var specialMoveNames = [["HURRICANE KICK", "HADOKEN", "SHINKU HADOKEN", "SHAKUNETSU HADOKEN", "SHORYUKEN"], ["A", "B"]];
+	var specialMoveStates = [
+							 [4, 7, 11, 17, 21], 
+							 [4, 5, 9, 11, 15]
+							];
+	var specialMoveNames = [
+							["HURRICANE KICK", "HADOKEN", "SHINKU HADOKEN", "SHAKUNETSU HADOKEN", "SHORYUKEN"], // RYU's Moves
+							["TIGER SHOT", "GROUND TIGER SHOT", "TIGER GENOCIDE", "TIGER KNEE CRUSH", "TIGER UPPERCUT"] // SAGAT's Moves
+						   ];
 	
   	var mappings = [
 					[ 
+					 // Ryu's Moves
 					 [0, 1, 12, 18, 0, 0, 0, 0, 0, 0],  // state 0
 					 [0, 1, 12, 18, 0, 5, 2, 0, 0, 0],  // state 1
 					 [0, 1, 3, 18, 0, 0, 0, 0, 0, 0],   // state 2
@@ -52,15 +59,24 @@
 					 [0, 1, 12, 18, 0, 6, 0, 0, 21, 0], // state 20
 					 [0, 1, 12, 18, 0, 0, 0, 0, 0, 0],  // state 21
 					],
+					 // Sagat's moves
 					[ 
-					 [0, 1, 0, 0, 0, 0, 0, 0, 0, 0], // state 0
-					 [0, 1, 0, 0, 0, 5, 2, 0, 0, 0], // state 1
-					 [0, 1, 3, 0, 0, 0, 0, 0, 0, 0], // state 2
-					 [0, 1, 0, 0, 0, 0, 0, 0, 0, 4], // state 3
-					 [0, 1, 0, 0, 0, 0, 0, 0, 0, 0], // state 4
-					 [0, 1, 0, 6, 0, 0, 0, 0, 0, 0], // state 5
-					 [0, 1, 0, 0, 0, 0, 0, 0, 7, 0], // state 6
-					 [0, 1, 0, 0, 0, 0, 0, 0, 0, 0], // state 7
+					 [0, 1, 0, 12, 0, 0, 0, 0, 0, 0],  // state 0
+					 [0, 1, 0, 12, 0, 2, 0, 0, 0, 0],  // state 1
+					 [0, 1, 0, 3, 0, 0, 0, 0, 0, 0],  // state 2
+					 [0, 6, 0, 12, 10, 0, 0, 0, 4, 5], // state 3
+					 [0, 1, 0, 12, 0, 0, 0, 0, 0, 0],  // state 4
+					 [0, 1, 0, 12, 0, 0, 0, 0, 0, 0], // state 5
+					 [0, 1, 0, 12, 0, 7, 0, 0, 0, 0], // state 6
+					 [0, 1, 0, 8, 0, 0, 0, 0, 15, 0], // state 7
+					 [0, 6, 0, 12, 10, 0, 0, 0, 9, 5], // state 8
+					 [0, 1, 0, 12, 0, 0, 0, 0, 0, 0], // state 9
+					 [0, 1, 0, 12, 0, 0, 0, 0, 0, 11], // state 10
+					 [0, 1, 0, 12, 0, 0, 0, 0, 0, 0], // state 11
+					 [0, 13, 0, 12, 0, 0, 0, 0, 0, 0], // state 12
+					 [0, 1, 0, 12, 0, 14, 0, 0, 0, 0], // state 13
+					 [0, 1, 0, 3, 0, 0, 0, 0, 15, 0], // state 14
+					 [0, 1, 0, 12, 0, 0, 0, 0, 0, 0], // state 15
 					]
 				   ];
 	
@@ -150,6 +166,15 @@
 		return button;
 	}
 	
+	function updatePlayer() {
+		var p = document.getElementById("playerSelect").value;
+		if (p === "ryu") {
+			selectedPlayer = 0;			
+		} else if (p === "sagat") {
+			selectedPlayer = 1;			
+		}
+	}
+	
 	// Function we continuously loop through to check for buttons being pressed and released
     function reportOnGamepad() {
         var DS4 = navigator.getGamepads()[0];
@@ -201,7 +226,7 @@
             html += "Stick " + (Math.ceil(i/2) + 1 ) + ": " + DS4.axes[i] + "," + DS4.axes[i + 1] + "<br/>";
         }
  		
-        $("#display").html(html);
+        $("#controllerInfo").html(html);
 		$("#buttonDisplay").html("Buttons: " + buttonLog);
     }
  
@@ -215,11 +240,13 @@
                 hasDS4 = true;
                 $("#connectionInfo").html("Controller is currently connected");                
                 reportDS4 = window.setInterval(reportOnGamepad,50);
+				$("#main").show();
             });
  
             $(window).on("gamepaddisconnected", function() {                
                 $("#connectionInfo").text("Connect PS4 controller and press a button");
                 window.clearInterval(reportDS4);
+				$("#main").hide();
             });
              
             var checkGP = window.setInterval(function() {                
@@ -235,10 +262,37 @@
 	
 	<body> 
 		<h1>Controller Demo</h1>
+		
 		<div id="connectionInfo"></div>
-		<div id="display"></div>
-		<br/>		
-		<div id="buttonDisplay" style="font-size:200%"></div>	
-		<div id="move" style="font-size:300%">Special Move:</div>	
+		<br/>
+		<div id="main" style="display: none;">
+			
+			<div id="buttons">
+				<button type="button" onclick="$('#controllerInfo').toggle();">Controller Info</button>
+				<button type="button" onclick="$('#programInfo').toggle();">Program Info</button>
+			</div>
+			
+			<div id="controllerInfo" style="display: none;"></div>
+			
+			<div id="programInfo" style="display: none;">
+			    <p>
+				  Written by Micah Colvin.<br>
+				  Moves taken from Street Fighter II Turbo. <br>
+				  Written for Formal Languages and Finite Automata, Spring 2016. <br>				
+				</p>
+			</div>
+			
+			<br/>
+			
+			<select id="playerSelect" onchange="updatePlayer()">
+			  <option value="ryu">Ryu</option>
+			  <option value="sagat">Sagat</option>
+			</select>		
+			
+			<br/><br/>
+			
+			<div id="buttonDisplay" style="font-size:200%"></div>	
+			<div id="move" style="font-size:300%">Special Move:</div>	
+		</div>
 	</body>    
 </html>
