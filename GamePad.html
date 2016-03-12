@@ -4,35 +4,61 @@
         <meta charset="utf-8">
         <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
         <script type="text/javascript" src="jquery-2.2.1.min.js"></script> 
+		 <script type="text/javascript" src="vis.min.js"></script>
+		  
+		  <style type="text/css">
+			#dfaSagat {
+			  width: 700px;
+			  height: 500px;
+			  border: 1px solid lightgray;
+			}
+			#dfaRyu {
+			  width: 700px;
+			  height: 500px;
+			  border: 1px solid lightgray;
+			}
+		  </style>
     </head>
-    
+    	
 	<script>		
+	
+	// TODO
+	// Add in DFA diagram using vis.js 
+	// Do a better job displaying special move so it doesn't disapear immediately
+	// Show actual gifs for the moves
+	// R
+	// Clean up code, too many global variables, not enough documentation, hard to follow
+	// Styling
+	// Move DFA visualization to separate file
+	
 	var buttons = ["X", "Circle", "Square", "Triangle", "L1", "R1", "L2", "R2", "Share", "Options", "L3", "R3", "Up", "Down", "Left", "Right", "Home", "Touchpad"];
     var previouslyPressed = [false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false];
 	var currentlyPressed = [false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false];
-	var hasDS4 = false;
-	var lastPress = "";
-    var reportDS4;
-	var buttonLog = "";
-
+	
 	// Note: DFA charts use simplified mapping. Controller has 18 buttons, but we only care about 8 directions and punch + kick
 	var revisedMappings = ["Up", "Down", "Left", "Right", "Up-Right", "Down-Right", "Down-Left", "Up-Left", "Punch", "Kick"];
 	
-	// Fighter Variables
+	var hasDS4 = false;
+    var reportDS4;
+	
+	var buttonLog = "";
+	var lastPress = "";
+		
 	var selectedPlayer = 0;
-	var RYU = 0;
-	var BLANKA = 1;
-	var fighters = ["Ryu", "Blanka"];	
+	var currentPosition = 0;
+	var timeCounter = 0;
+	
+	var previousNode = 0;
 	
 	var specialMoveStates = [
-							 [4, 7, 11, 17, 21], 
-							 [4, 5, 9, 11, 15]
+							 [4, 7, 11, 17, 21],  // Ryu's special move accepting states
+							 [4, 5, 9, 11, 15]    // Sagat's special move accepting states
 							];
+							
 	var specialMoveNames = [
 							["HURRICANE KICK", "HADOKEN", "SHINKU HADOKEN", "SHAKUNETSU HADOKEN", "SHORYUKEN"], // RYU's Moves
 							["TIGER SHOT", "GROUND TIGER SHOT", "TIGER GENOCIDE", "TIGER KNEE CRUSH", "TIGER UPPERCUT"] // SAGAT's Moves
-						   ];
-	
+						   ];							   
   	var mappings = [
 					[ 
 					 // Ryu's Moves
@@ -58,30 +84,27 @@
 					 [0, 1, 12, 18, 0, 20, 2, 0, 0, 0], // state 19
 					 [0, 1, 12, 18, 0, 6, 0, 0, 21, 0], // state 20
 					 [0, 1, 12, 18, 0, 0, 0, 0, 0, 0],  // state 21
-					],
-					 // Sagat's moves
+					],					 
 					[ 
+					 // Sagat's moves
 					 [0, 1, 0, 12, 0, 0, 0, 0, 0, 0],  // state 0
 					 [0, 1, 0, 12, 0, 2, 0, 0, 0, 0],  // state 1
-					 [0, 1, 0, 3, 0, 0, 0, 0, 0, 0],  // state 2
+					 [0, 1, 0, 3, 0, 0, 0, 0, 0, 0],   // state 2
 					 [0, 6, 0, 12, 10, 0, 0, 0, 4, 5], // state 3
 					 [0, 1, 0, 12, 0, 0, 0, 0, 0, 0],  // state 4
-					 [0, 1, 0, 12, 0, 0, 0, 0, 0, 0], // state 5
-					 [0, 1, 0, 12, 0, 7, 0, 0, 0, 0], // state 6
-					 [0, 1, 0, 8, 0, 0, 0, 0, 15, 0], // state 7
+					 [0, 1, 0, 12, 0, 0, 0, 0, 0, 0],  // state 5
+					 [0, 1, 0, 12, 0, 7, 0, 0, 0, 0],  // state 6
+					 [0, 1, 0, 8, 0, 0, 0, 0, 15, 0],  // state 7
 					 [0, 6, 0, 12, 10, 0, 0, 0, 9, 5], // state 8
-					 [0, 1, 0, 12, 0, 0, 0, 0, 0, 0], // state 9
+					 [0, 1, 0, 12, 0, 0, 0, 0, 0, 0],  // state 9
 					 [0, 1, 0, 12, 0, 0, 0, 0, 0, 11], // state 10
-					 [0, 1, 0, 12, 0, 0, 0, 0, 0, 0], // state 11
+					 [0, 1, 0, 12, 0, 0, 0, 0, 0, 0],  // state 11
 					 [0, 13, 0, 12, 0, 0, 0, 0, 0, 0], // state 12
 					 [0, 1, 0, 12, 0, 14, 0, 0, 0, 0], // state 13
-					 [0, 1, 0, 3, 0, 0, 0, 0, 15, 0], // state 14
-					 [0, 1, 0, 12, 0, 0, 0, 0, 0, 0], // state 15
+					 [0, 1, 0, 3, 0, 0, 0, 0, 15, 0],  // state 14
+					 [0, 1, 0, 12, 0, 0, 0, 0, 0, 0],  // state 15
 					]
 				   ];
-	
-    var currentPosition = 0;
-	var timeCounter = 0;
 	
 	function determinePosition(diagonals) {
 	
@@ -103,6 +126,7 @@
 		timeCounter = 0;
 		buttonLog += revisedMappings[button] + " ";		
 		currentPosition = mappings[selectedPlayer][currentPosition][button];
+		changeNode(currentPosition);
 		
 		// Determine if we are now in a special move state
 		var move = "None";	
@@ -166,14 +190,31 @@
 		return button;
 	}
 	
+	// Update the current player
 	function updatePlayer() {
 		var p = document.getElementById("playerSelect").value;
 		if (p === "ryu") {
 			selectedPlayer = 0;			
+			$('#dfaRyu').show();
+			$('#dfaSagat').hide();
 		} else if (p === "sagat") {
 			selectedPlayer = 1;			
+			$('#dfaRyu').hide();
+			$('#dfaSagat').show();
 		}
 	}
+	
+	// Update node color
+	function changeNode(id) {
+		if (selectedPlayer == 0) {
+			nodesRyu.update([{id:previousNode, color:{background:'#D2E5FF'}}]);
+			nodesRyu.update([{id:id, color:{background:'red'}}]);		
+		} else if (selectedPlayer == 1) {
+			nodesSagat.update([{id:previousNode, color:{background:'#D2E5FF'}}]);
+			nodesSagat.update([{id:id, color:{background:'red'}}]);
+		}
+		previousNode = id;
+    }
 	
 	// Function we continuously loop through to check for buttons being pressed and released
     function reportOnGamepad() {
@@ -183,7 +224,8 @@
 		timeCounter++;
 		if (timeCounter % 20 == 0) {			
 			currentPosition = 0;
-			buttonLog = "";
+			changeNode(currentPosition);
+			buttonLog = "";			
 		}
 		
         for (var i = 0; i < DS4.buttons.length; i++) {
@@ -270,6 +312,7 @@
 			<div id="buttons">
 				<button type="button" onclick="$('#controllerInfo').toggle();">Controller Info</button>
 				<button type="button" onclick="$('#programInfo').toggle();">Program Info</button>
+				<button type="button" onclick="$('#dfaContainer').toggle();">DFA Visualization</button>
 			</div>
 			
 			<div id="controllerInfo" style="display: none;"></div>
@@ -284,7 +327,7 @@
 			
 			<br/>
 			
-			<select id="playerSelect" onchange="updatePlayer()">
+			Player: <select id="playerSelect" onchange="updatePlayer()">
 			  <option value="ryu">Ryu</option>
 			  <option value="sagat">Sagat</option>
 			</select>		
@@ -293,6 +336,253 @@
 			
 			<div id="buttonDisplay" style="font-size:200%"></div>	
 			<div id="move" style="font-size:300%">Special Move:</div>	
+			<br/>
+			
+			<div id="dfaContainer" style="display: none;">
+				<div id="dfaSagat" style="display: none;"></div>
+				<div id="dfaRyu"></div>
+			</div>
+			
+			<script type="text/javascript">
+  
+    var nodesRyu = new vis.DataSet([
+		{id: 0, label: '0', color:{background:'red'}},
+		{id: 1, label: '1'},
+		{id: 2, label: '2'},
+		{id: 3, label: '3'},
+		{id: 4, label: '4(A)'},
+		{id: 5, label: '5'},
+		{id: 6, label: '6'},
+		{id: 7, label: '7(A)'},
+		{id: 8, label: '8'},
+		{id: 9, label: '9'},
+		{id: 10, label: '10'},
+		{id: 11, label: '11(A)'},
+		{id: 12, label: '12'},
+		{id: 13, label: '13'},
+		{id: 14, label: '14'},
+		{id: 15, label: '15'},
+		{id: 16, label: '16'},
+		{id: 17, label: '17(A)'},
+		{id: 18, label: '18'},
+		{id: 19, label: '19'},
+		{id: 20, label: '20'},
+		{id: 21, label: '21(A)'}
+	  ]);
+  
+  var nodesSagat = new vis.DataSet([
+    {id: 0, label: '0', color:{background:'red'}},
+	{id: 1, label: '1'},
+    {id: 2, label: '2'},
+    {id: 3, label: '3'},
+    {id: 4, label: '4(A)'},
+    {id: 5, label: '5(A)'},
+    {id: 6, label: '6'},
+    {id: 7, label: '7'},
+	{id: 8, label: '8'},
+	{id: 9, label: '9(A)'},
+	{id: 10, label: '10'},
+	{id: 11, label: '11(A)'},
+	{id: 12, label: '12'},
+	{id: 13, label: '13'},
+	{id: 14, label: '14'},
+    {id: 15, label: '15(A)'}
+  ]);
+  
+  var edgesSagat = new vis.DataSet([
+    {from: 0, to: 1, arrows:'to', label: 'D'},
+	{from: 0, to: 12, arrows:'to', label: 'R'},
+	{from: 1, to: 2, arrows:'to', label: 'DR'},
+	{from: 2, to: 3, arrows:'to', label: 'R'},
+	{from: 3, to: 4, arrows:'to', label: 'P'},
+	{from: 3, to: 5, arrows:'to', label: 'K'},
+	{from: 3, to: 6, arrows:'to', label: 'D'},
+    {from: 3, to: 10, arrows:'to', label: 'UR'},
+    {from: 6, to: 7, arrows:'to', label: 'DR'},
+    {from: 7, to: 8, arrows:'to', label: 'R'},
+	{from: 7, to: 15, arrows:'to', label: 'P'},
+    {from: 8, to: 9, arrows:'to', label: 'P'},
+	{from: 8, to: 5, arrows:'to', label: 'K'},
+	{from: 8, to: 6, arrows:'to', label: 'D'},
+	{from: 8, to: 10, arrows:'to', label: 'UR'},
+    {from: 10, to: 11, arrows:'to', label: 'K'},
+	{from: 12, to: 13, arrows:'to', label: 'D'},
+	{from: 13, to: 14, arrows:'to', label: 'DR'},
+	{from: 14, to: 3, arrows:'to', label: 'R'},
+	{from: 14, to: 15, arrows:'to', label: 'P'},
+	
+	{from: 1, to: 1, arrows:'to', label: 'D'},
+	{from: 2, to: 1, arrows:'to', label: 'D'},	
+	{from: 4, to: 1, arrows:'to', label: 'D'},
+    {from: 5, to: 1, arrows:'to', label: 'D'},
+    {from: 6, to: 1, arrows:'to', label: 'D'},
+    {from: 7, to: 1, arrows:'to', label: 'D'},	
+    {from: 8, to: 1, arrows:'to', label: 'D'},	
+	{from: 9, to: 1, arrows:'to', label: 'D'},
+	{from: 10, to: 1, arrows:'to', label: 'D'},
+    {from: 11, to: 1, arrows:'to', label: 'D'},	
+	{from: 13, to: 1, arrows:'to', label: 'D'},
+	{from: 14, to: 1, arrows:'to', label: 'D'},
+	{from: 15, to: 1, arrows:'to', label: 'D'},
+
+	{from: 1, to: 12, arrows:'to', label: 'R'},
+	{from: 3, to: 12, arrows:'to', label: 'R'},	
+	{from: 4, to: 12, arrows:'to', label: 'R'},
+    {from: 5, to: 12, arrows:'to', label: 'R'},
+    {from: 6, to: 12, arrows:'to', label: 'R'},    
+    {from: 8, to: 12, arrows:'to', label: 'R'},	
+	{from: 9, to: 12, arrows:'to', label: 'R'},
+	{from: 10, to: 12, arrows:'to', label: 'R'},
+    {from: 11, to: 12, arrows:'to', label: 'R'},	
+	{from: 12, to: 12, arrows:'to', label: 'R'},	
+	{from: 13, to: 12, arrows:'to', label: 'R'},
+	{from: 14, to: 12, arrows:'to', label: 'R'},
+	{from: 15, to: 12, arrows:'to', label: 'R'},
+	
+	{from: 0, to: 0, arrows:'to', label: '*'},
+	{from: 1, to: 0, arrows:'to', label: '*'},
+	{from: 2, to: 0, arrows:'to', label: '*'},	
+	{from: 3, to: 0, arrows:'to', label: '*'},
+	{from: 4, to: 0, arrows:'to', label: '*'},
+    {from: 5, to: 0, arrows:'to', label: '*'},
+    {from: 6, to: 0, arrows:'to', label: '*'},    
+	{from: 7, to: 0, arrows:'to', label: '*'},    
+    {from: 8, to: 0, arrows:'to', label: '*'},	
+	{from: 9, to: 0, arrows:'to', label: '*'},
+	{from: 10, to: 0, arrows:'to', label: '*'},
+    {from: 11, to: 0, arrows:'to', label: '*'},	
+	{from: 12, to: 0, arrows:'to', label: '*'},	
+	{from: 13, to: 0, arrows:'to', label: '*'},
+	{from: 14, to: 0, arrows:'to', label: '*'},
+	{from: 15, to: 0, arrows:'to', label: '*'}	
+  ]);
+
+    var edgesRyu = new vis.DataSet([
+    {from: 0, to: 1, arrows:'to', label: 'D'},
+	{from: 0, to: 12, arrows:'to', label: 'L'},
+	{from: 0, to: 18, arrows:'to', label: 'R'},
+	{from: 1, to: 2, arrows:'to', label: 'DL'},
+	{from: 1, to: 5, arrows:'to', label: 'DR'},
+	{from: 2, to: 3, arrows:'to', label: 'L'},
+	{from: 3, to: 4, arrows:'to', label: 'K'},	
+	{from: 5, to: 6, arrows:'to', label: 'R'},	
+    {from: 6, to: 7, arrows:'to', label: 'P'},
+	{from: 6, to: 8, arrows:'to', label: 'D'},    
+	{from: 8, to: 2, arrows:'to', label: 'DL'},
+    {from: 8, to: 9, arrows:'to', label: 'DR'},	
+	{from: 9, to: 10, arrows:'to', label: 'R'},
+	{from: 9, to: 21, arrows:'to', label: 'P'},
+    {from: 10, to: 11, arrows:'to', label: 'P'},
+	{from: 10, to: 8, arrows:'to', label: 'D'},
+	{from: 12, to: 13, arrows:'to', label: 'DL'},
+	{from: 13, to: 14, arrows:'to', label: 'D'},
+	{from: 14, to: 2, arrows:'to', label: 'DL'},
+	{from: 14, to: 15, arrows:'to', label: 'DR'},
+	{from: 15, to: 16, arrows:'to', label: 'R'},
+	{from: 16, to: 8, arrows:'to', label: 'R'},
+	{from: 16, to: 17, arrows:'to', label: 'P'},	
+	{from: 18, to: 19, arrows:'to', label: 'D'},
+	{from: 19, to: 2, arrows:'to', label: 'DL'},
+	{from: 19, to: 20, arrows:'to', label: 'DR'},
+	{from: 20, to: 6, arrows:'to', label: 'R'},
+	{from: 20, to: 21, arrows:'to', label: 'P'},
+	
+	{from: 1, to: 1, arrows:'to', label: 'D'},
+	{from: 2, to: 1, arrows:'to', label: 'D'},	
+	{from: 3, to: 1, arrows:'to', label: 'D'},	
+	{from: 4, to: 1, arrows:'to', label: 'D'},
+    {from: 5, to: 1, arrows:'to', label: 'D'},    	
+    {from: 7, to: 1, arrows:'to', label: 'D'},	
+    {from: 8, to: 1, arrows:'to', label: 'D'},	
+	{from: 9, to: 1, arrows:'to', label: 'D'},	
+    {from: 11, to: 1, arrows:'to', label: 'D'},	
+	{from: 12, to: 1, arrows:'to', label: 'D'},		
+	{from: 14, to: 1, arrows:'to', label: 'D'},
+	{from: 15, to: 1, arrows:'to', label: 'D'},	
+	{from: 17, to: 1, arrows:'to', label: 'D'},	
+	{from: 19, to: 1, arrows:'to', label: 'D'},
+	{from: 20, to: 1, arrows:'to', label: 'D'},
+	{from: 21, to: 1, arrows:'to', label: 'D'},
+	
+	{from: 1, to: 12, arrows:'to', label: 'L'},
+	{from: 3, to: 12, arrows:'to', label: 'L'},	
+	{from: 4, to: 12, arrows:'to', label: 'L'},
+    {from: 5, to: 12, arrows:'to', label: 'L'},
+    {from: 6, to: 12, arrows:'to', label: 'L'},
+    {from: 7, to: 12, arrows:'to', label: 'L'},	
+    {from: 8, to: 12, arrows:'to', label: 'L'},	
+	{from: 9, to: 12, arrows:'to', label: 'L'},
+	{from: 10, to: 12, arrows:'to', label: 'L'},	
+    {from: 11, to: 12, arrows:'to', label: 'L'},
+	{from: 12, to: 12, arrows:'to', label: 'L'},		
+	{from: 13, to: 12, arrows:'to', label: 'L'},
+	{from: 14, to: 12, arrows:'to', label: 'L'},
+	{from: 15, to: 12, arrows:'to', label: 'L'},
+	{from: 16, to: 12, arrows:'to', label: 'L'},
+	{from: 17, to: 12, arrows:'to', label: 'L'},
+	{from: 18, to: 12, arrows:'to', label: 'L'},
+	{from: 19, to: 12, arrows:'to', label: 'L'},
+	{from: 20, to: 12, arrows:'to', label: 'L'},
+	{from: 21, to: 12, arrows:'to', label: 'L'},
+	
+	{from: 1, to: 18, arrows:'to', label: 'R'},
+	{from: 2, to: 18, arrows:'to', label: 'R'},
+	{from: 3, to: 18, arrows:'to', label: 'R'},	
+	{from: 4, to: 18, arrows:'to', label: 'R'},    
+    {from: 6, to: 18, arrows:'to', label: 'R'},
+    {from: 7, to: 18, arrows:'to', label: 'R'},	
+    {from: 8, to: 18, arrows:'to', label: 'R'},		
+	{from: 10, to: 18, arrows:'to', label: 'R'},
+	{from: 11, to: 18, arrows:'to', label: 'R'},
+    {from: 12, to: 18, arrows:'to', label: 'R'},	
+	{from: 13, to: 18, arrows:'to', label: 'R'},
+	{from: 14, to: 18, arrows:'to', label: 'R'},	
+	{from: 16, to: 18, arrows:'to', label: 'R'},
+	{from: 17, to: 18, arrows:'to', label: 'R'},
+	{from: 18, to: 18, arrows:'to', label: 'R'},
+	{from: 19, to: 18, arrows:'to', label: 'R'},	
+	{from: 21, to: 18, arrows:'to', label: 'R'},
+
+	{from: 0, to: 0, arrows:'to', label: '*'},
+	{from: 1, to: 0, arrows:'to', label: '*'},
+	{from: 2, to: 0, arrows:'to', label: '*'},	
+	{from: 3, to: 0, arrows:'to', label: '*'},	
+	{from: 4, to: 0, arrows:'to', label: '*'},
+    {from: 5, to: 0, arrows:'to', label: '*'},
+    {from: 6, to: 0, arrows:'to', label: '*'},
+    {from: 7, to: 0, arrows:'to', label: '*'},	
+    {from: 8, to: 0, arrows:'to', label: '*'},	
+	{from: 9, to: 0, arrows:'to', label: '*'},
+	{from: 10, to: 0, arrows:'to', label: '*'},
+    {from: 11, to: 0, arrows:'to', label: '*'},	
+	{from: 12, to: 0, arrows:'to', label: '*'},	
+	{from: 13, to: 0, arrows:'to', label: '*'},
+	{from: 14, to: 0, arrows:'to', label: '*'},
+	{from: 15, to: 0, arrows:'to', label: '*'},
+	{from: 16, to: 0, arrows:'to', label: '*'},
+	{from: 17, to: 0, arrows:'to', label: '*'},
+	{from: 18, to: 0, arrows:'to', label: '*'},
+	{from: 19, to: 0, arrows:'to', label: '*'},
+	{from: 20, to: 0, arrows:'to', label: '*'},
+	{from: 21, to: 0, arrows:'to', label: '*'},  ]);
+
+  
+  var containerSagat = document.getElementById('dfaSagat');
+  var containerRyu = document.getElementById('dfaRyu');
+  
+  var dataSagat = {
+    nodes: nodesSagat,
+    edges: edgesSagat
+  };
+  var dataRyu = {
+    nodes: nodesRyu,
+    edges: edgesRyu
+  };
+  
+  var options = {};
+  var networkSagat = new vis.Network(containerSagat, dataSagat, options);
+  var networkRyu = new vis.Network(containerRyu, dataRyu, options);
+</script>
 		</div>
 	</body>    
 </html>
