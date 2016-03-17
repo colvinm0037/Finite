@@ -11,31 +11,15 @@
     	
 	<script>		
 	
-	// TODO
-	// Do a better job displaying special move so it doesn't disappear immediately	
-	// R
-	// Clean up code, too many global variables, not enough documentation, hard to follow
-	// Styling	
-	
-	var buttons = ["X", "Circle", "Square", "Triangle", "L1", "R1", "L2", "R2", "Share", "Options", "L3", "R3", "Up", "Down", "Left", "Right", "Home", "Touchpad"];
-    var previouslyPressed = [false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false];
-	var currentlyPressed = [false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false];
-	
 	// Note: DFA charts use simplified mapping. Controller has 18 buttons, but we only care about 8 directions and punch + kick
 	var revisedMappings = ["Up", "Down", "Left", "Right", "Up-Right", "Down-Right", "Down-Left", "Up-Left", "Punch", "Kick"];
-	
-	var hasDS4 = false;
-    var reportDS4;
-	
-	var buttonLog = "";
-	var lastPress = "";
 		
+	var buttonLog = "";			
 	var selectedPlayer = 0;
 	var currentPosition = 0;
-	var timeCounter = 0;
-	
-	var previousNode = 0;
-	
+	var timeCounter = 0;	
+		
+	// This are the accepting states for each fighters special moves
 	var specialMoveStates = [
 							 [4, 7, 11, 17, 21],  // Ryu's special move accepting states
 							 [4, 5, 9, 11, 15]    // Sagat's special move accepting states
@@ -44,7 +28,9 @@
 	var specialMoveNames = [
 							["HURRICANE KICK", "HADOKEN", "SHINKU HADOKEN", "SHAKUNETSU HADOKEN", "SHORYUKEN"], // RYU's Moves
 							["TIGER SHOT", "GROUND TIGER SHOT", "TIGER GENOCIDE", "TIGER KNEE CRUSH", "TIGER UPPERCUT"] // SAGAT's Moves
-						   ];							   
+						   ];					
+						   
+    // The DFA's for completing a special move						   
   	var mappings = [
 					[ 
 					 // Ryu's Moves
@@ -92,20 +78,24 @@
 					]
 				   ];
 	
-	function determinePosition(diagonals) {
+	// Determine where to move to in the DFA and move there
+	function determinePosition(buttonReleased) {
 	
 		var button = 0;		
 		
 		// Process the controller input
-		if (diagonals === true) {
+		if (buttonReleased === true) {
+		
+			// A button was released, not pressed. When this happens we only care if it is a diagonal being released.
 			button = diagonalMapping();
 		}
 		else {
+			// A button was pressed, we have to handle it.
 			button = regularMapping();
 		}
 		
 		if (button === -1) {
-			return; // Not an accepted controller input
+			return; // Not an accepted controller input (Buttons we don't care about are ignored, such as Start, L3, R3, etc.)
 		}
 		
 		// We have accepted the controller input. Reset time reset counter, display button press, and move to next DFA position.
@@ -121,12 +111,14 @@
 		var specialMoveLocation = $.inArray(currentPosition, specialMoveStates[selectedPlayer]);
 		
 		if (specialMoveLocation != -1) {
-			move = specialMoveNames[selectedPlayer][specialMoveLocation];
+			var move = specialMoveNames[selectedPlayer][specialMoveLocation];
 		}
 		
 		// Display the move 
 		$("#move").html("Special Move: " + move);
 	}
+		
+	var currentlyPressed = [false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false];
 	
 	// Simplified Mappings only for diagonals
 	function diagonalMapping() {
@@ -176,29 +168,35 @@
 		return button;
 	}
 	
-	// Update the current player
+	// Update the current fighter, called when changing fighter select.
 	function updatePlayer() {
 		var p = document.getElementById("playerSelect").value;
 		if (p === "ryu") {
 			selectedPlayer = 0;			
 			
+			// Show the correct DFA diagram
 			$('#dfaRyu').show();
 			$('#dfaSagat').hide();
-			
+
+			// Show the correct move set
 			$('#ryuMoveset').show();
 			$('#sagatMoveset').hide();
+			
 		} else if (p === "sagat") {
 			selectedPlayer = 1;		
-			
+
+			// Show the correct DFA diagram
 			$('#dfaRyu').hide();
 			$('#dfaSagat').show();
-			
+
+			// Show the correct move set
 			$('#ryuMoveset').hide();
 			$('#sagatMoveset').show();
 		}
 	}
 	
-	// Update node color
+	// Update color of DFA node so current node is highlighted
+	var previousNode = 0;
 	function changeNode(id) {
 		if (selectedPlayer == 0) {
 			nodesRyu.update([{id:previousNode, color:{background:'#D2E5FF'}}]);
@@ -210,11 +208,18 @@
 		previousNode = id;
     }
 	
-	// Function we continuously loop through to check for buttons being pressed and released
-    function reportOnGamepad() {
-        var DS4 = navigator.getGamepads()[0];
-        var html = "<br>";
-        
+	// When a button is pressed it doesn't fire an event.
+	// Only way to check if a button is pressed/released by looking at what buttons are currently being pressed.
+	// So we continuously loop this function to determine button presses.
+	//
+	// Diagonals cause some issues. They are the only time we care about a button release.
+	// Ex: User is holding Down and Right at the same time, then lets go of Down but is still holding Right. We
+	// want to count this as pressing Right. 
+    var previouslyPressed = [false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false];
+	function checkOnDS4() {
+			
+		var DS4 = navigator.getGamepads()[0];
+            
 		timeCounter++;
 		if (timeCounter % 20 == 0) {			
 			currentPosition = 0;
@@ -222,26 +227,19 @@
 			buttonLog = "";			
 		}
 		
-        for (var i = 0; i < DS4.buttons.length; i++) {
-            html += buttons[i] + ": ";
-            if (DS4.buttons[i].pressed) {
-			     html+= " pressed";
+		// Update what buttons are currently being pressed
+        for (var i = 0; i < DS4.buttons.length; i++) {        
+			if (DS4.buttons[i].pressed) {		
 				 currentlyPressed[i] = true;				 
 			} else {
 				currentlyPressed[i] = false;
-			}
-			
-            html += "<br/>";
+			}            
         }
 
-		html += "<br>" 		
-		html += "<br> Current Position in Array : " + currentPosition + "<br>";		
-		html += "Currently Pressing: ";
-        for (var i = 0; i < DS4.buttons.length; i++) {
+		// Check for new presses and releases
+		for (var i = 0; i < DS4.buttons.length; i++) {
             
-            if (DS4.buttons[i].pressed) {
-			    html += buttons[i] + " ";
-				 				 
+            if (DS4.buttons[i].pressed) {						 				 
 				// A new button has been pressed,move DFA position
 				if (previouslyPressed[i] === false) { 
 				    determinePosition(false);				
@@ -256,39 +254,35 @@
         }
 				
 		for (var i = 0; i < 18; i++) previouslyPressed[i] = currentlyPressed[i];
-		
-		html += "<br/><br/>Joysticks<br/>";
-		for(var i = 0;i < DS4.axes.length; i += 2) {
-            html += "Stick " + (Math.ceil(i/2) + 1 ) + ": " + DS4.axes[i] + "," + DS4.axes[i + 1] + "<br/>";
-        }
- 		
-        $("#controllerInfo").html(html);
+		 		
 		$("#buttonDisplay").html("Buttons: " + buttonLog);
     }
  
+    // Handle displaying controller connection info.
+	// Initiate repeating controller checking function to handle button presses.
     $(document).ready(function() {
  		
+		var reportDS4;		
+		var hasDS4 = false;
+		
         if ("getGamepads" in navigator) {
   
             $("#connectionInfo").text("Connect PS4 controller and press a button");
  
-            $(window).on("connectionInfo", function() {
-                hasDS4 = true;
-                $("#connectionInfo").html("Controller is currently connected");                
-                reportDS4 = window.setInterval(reportOnGamepad,50);
-				$("#main").show();
-            });
- 
             $(window).on("gamepaddisconnected", function() {                
-                $("#connectionInfo").text("Connect PS4 controller and press a button");
+                hasDS4 = false;
+				$("#connectionInfo").text("Connect PS4 controller and press a button");
                 window.clearInterval(reportDS4);
-				$("#main").hide();
+				$("#main").hide();				
             });
              
-            var checkGP = window.setInterval(function() {                
-                if (navigator.getGamepads()[0]) {
-                    if (!hasDS4) $(window).trigger("connectionInfo");
-                    window.clearInterval(checkGP);
+            var ds4Interval = window.setInterval(function() {  
+				
+                if (navigator.getGamepads()[0] && !hasDS4) {                    
+				   hasDS4 = true;
+				   $("#connectionInfo").html("Controller is currently connected");                
+				   reportDS4 = window.setInterval(checkOnDS4,50);
+				   $("#main").show();		 
                 }
             }, 500);
         }
@@ -304,20 +298,20 @@
 		<br/>
 		<div id="main" style="display: none;">
 			
-			<div id="buttons">
-				<button type="button" onclick="$('#controllerInfo').toggle();">Controller Info</button>
+			<div id="buttons">				
 				<button type="button" onclick="$('#programInfo').toggle();">Program Info</button>
 				<button type="button" onclick="$('#dfaContainer').toggle();">DFA Visualization</button>
 				<button type="button" onclick="$('#moveSets').toggle();">Show Move Set</button>
 			</div>
-			
-			<div id="controllerInfo" style="display: none;"></div>
-			
+									
 			<div id="programInfo" style="display: none;">
 			    <p>
 				  Written by Micah Colvin.<br>
 				  Moves taken from Street Fighter II Turbo. <br>
 				  Written for Formal Languages and Finite Automata, Spring 2016. <br>			
+				  <br>
+				  Works best in Google Chrome.<br>
+				  Designed for use with Sony DualShock 4 Gamepad.<br>
 				  <br>
 				  Libraries Used: <br/>
 				  JQuery - <a href="https://jquery.com/">https://jquery.com/ </a> <br>
