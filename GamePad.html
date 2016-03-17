@@ -4,7 +4,8 @@
         <meta charset="utf-8">
         <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
         <script type="text/javascript" src="jquery-2.2.1.min.js"></script> 
-		 <script type="text/javascript" src="vis.min.js"></script>
+		<script type="text/javascript" src="vis.min.js"></script>
+		<script type="text/javascript" src="visualizationData.js"></script>
 		  
 		  <style type="text/css">
 			#dfaSagat {
@@ -23,8 +24,7 @@
 	<script>		
 	
 	// TODO
-	// Add in DFA diagram using vis.js 
-	// Do a better job displaying special move so it doesn't disapear immediately
+	// Do a better job displaying special move so it doesn't disappear immediately
 	// Show actual gifs for the moves
 	// R
 	// Clean up code, too many global variables, not enough documentation, hard to follow
@@ -300,10 +300,11 @@
         }
  
     });
-    </script>
+	
+	</script>
 	
 	<body> 
-		<h1>Controller Demo</h1>
+		<h1>Super Street Fighter II Turbo Finite State Machine</h1>
 		
 		<div id="connectionInfo"></div>
 		<br/>
@@ -321,7 +322,11 @@
 			    <p>
 				  Written by Micah Colvin.<br>
 				  Moves taken from Street Fighter II Turbo. <br>
-				  Written for Formal Languages and Finite Automata, Spring 2016. <br>				
+				  Written for Formal Languages and Finite Automata, Spring 2016. <br>			
+				  <br>
+				  Libraries Used: <br/>
+				  JQuery - <a href="https://jquery.com/">https://jquery.com/ </a> <br>
+				  vis.js (Used for DFA diagrams) - <a href="http://visjs.org/">http://visjs.org/</a> <br>
 				</p>
 			</div>
 			
@@ -343,246 +348,14 @@
 				<div id="dfaRyu"></div>
 			</div>
 			
-			<script type="text/javascript">
-  
-    var nodesRyu = new vis.DataSet([
-		{id: 0, label: '0', color:{background:'red'}},
-		{id: 1, label: '1'},
-		{id: 2, label: '2'},
-		{id: 3, label: '3'},
-		{id: 4, label: '4(A)'},
-		{id: 5, label: '5'},
-		{id: 6, label: '6'},
-		{id: 7, label: '7(A)'},
-		{id: 8, label: '8'},
-		{id: 9, label: '9'},
-		{id: 10, label: '10'},
-		{id: 11, label: '11(A)'},
-		{id: 12, label: '12'},
-		{id: 13, label: '13'},
-		{id: 14, label: '14'},
-		{id: 15, label: '15'},
-		{id: 16, label: '16'},
-		{id: 17, label: '17(A)'},
-		{id: 18, label: '18'},
-		{id: 19, label: '19'},
-		{id: 20, label: '20'},
-		{id: 21, label: '21(A)'}
-	  ]);
-  
-  var nodesSagat = new vis.DataSet([
-    {id: 0, label: '0', color:{background:'red'}},
-	{id: 1, label: '1'},
-    {id: 2, label: '2'},
-    {id: 3, label: '3'},
-    {id: 4, label: '4(A)'},
-    {id: 5, label: '5(A)'},
-    {id: 6, label: '6'},
-    {id: 7, label: '7'},
-	{id: 8, label: '8'},
-	{id: 9, label: '9(A)'},
-	{id: 10, label: '10'},
-	{id: 11, label: '11(A)'},
-	{id: 12, label: '12'},
-	{id: 13, label: '13'},
-	{id: 14, label: '14'},
-    {id: 15, label: '15(A)'}
-  ]);
-  
-  var edgesSagat = new vis.DataSet([
-    {from: 0, to: 1, arrows:'to', label: 'D'},
-	{from: 0, to: 12, arrows:'to', label: 'R'},
-	{from: 1, to: 2, arrows:'to', label: 'DR'},
-	{from: 2, to: 3, arrows:'to', label: 'R'},
-	{from: 3, to: 4, arrows:'to', label: 'P'},
-	{from: 3, to: 5, arrows:'to', label: 'K'},
-	{from: 3, to: 6, arrows:'to', label: 'D'},
-    {from: 3, to: 10, arrows:'to', label: 'UR'},
-    {from: 6, to: 7, arrows:'to', label: 'DR'},
-    {from: 7, to: 8, arrows:'to', label: 'R'},
-	{from: 7, to: 15, arrows:'to', label: 'P'},
-    {from: 8, to: 9, arrows:'to', label: 'P'},
-	{from: 8, to: 5, arrows:'to', label: 'K'},
-	{from: 8, to: 6, arrows:'to', label: 'D'},
-	{from: 8, to: 10, arrows:'to', label: 'UR'},
-    {from: 10, to: 11, arrows:'to', label: 'K'},
-	{from: 12, to: 13, arrows:'to', label: 'D'},
-	{from: 13, to: 14, arrows:'to', label: 'DR'},
-	{from: 14, to: 3, arrows:'to', label: 'R'},
-	{from: 14, to: 15, arrows:'to', label: 'P'},
-	
-	{from: 1, to: 1, arrows:'to', label: 'D'},
-	{from: 2, to: 1, arrows:'to', label: 'D'},	
-	{from: 4, to: 1, arrows:'to', label: 'D'},
-    {from: 5, to: 1, arrows:'to', label: 'D'},
-    {from: 6, to: 1, arrows:'to', label: 'D'},
-    {from: 7, to: 1, arrows:'to', label: 'D'},	
-    {from: 8, to: 1, arrows:'to', label: 'D'},	
-	{from: 9, to: 1, arrows:'to', label: 'D'},
-	{from: 10, to: 1, arrows:'to', label: 'D'},
-    {from: 11, to: 1, arrows:'to', label: 'D'},	
-	{from: 13, to: 1, arrows:'to', label: 'D'},
-	{from: 14, to: 1, arrows:'to', label: 'D'},
-	{from: 15, to: 1, arrows:'to', label: 'D'},
-
-	{from: 1, to: 12, arrows:'to', label: 'R'},
-	{from: 3, to: 12, arrows:'to', label: 'R'},	
-	{from: 4, to: 12, arrows:'to', label: 'R'},
-    {from: 5, to: 12, arrows:'to', label: 'R'},
-    {from: 6, to: 12, arrows:'to', label: 'R'},    
-    {from: 8, to: 12, arrows:'to', label: 'R'},	
-	{from: 9, to: 12, arrows:'to', label: 'R'},
-	{from: 10, to: 12, arrows:'to', label: 'R'},
-    {from: 11, to: 12, arrows:'to', label: 'R'},	
-	{from: 12, to: 12, arrows:'to', label: 'R'},	
-	{from: 13, to: 12, arrows:'to', label: 'R'},
-	{from: 14, to: 12, arrows:'to', label: 'R'},
-	{from: 15, to: 12, arrows:'to', label: 'R'},
-	
-	{from: 0, to: 0, arrows:'to', label: '*'},
-	{from: 1, to: 0, arrows:'to', label: '*'},
-	{from: 2, to: 0, arrows:'to', label: '*'},	
-	{from: 3, to: 0, arrows:'to', label: '*'},
-	{from: 4, to: 0, arrows:'to', label: '*'},
-    {from: 5, to: 0, arrows:'to', label: '*'},
-    {from: 6, to: 0, arrows:'to', label: '*'},    
-	{from: 7, to: 0, arrows:'to', label: '*'},    
-    {from: 8, to: 0, arrows:'to', label: '*'},	
-	{from: 9, to: 0, arrows:'to', label: '*'},
-	{from: 10, to: 0, arrows:'to', label: '*'},
-    {from: 11, to: 0, arrows:'to', label: '*'},	
-	{from: 12, to: 0, arrows:'to', label: '*'},	
-	{from: 13, to: 0, arrows:'to', label: '*'},
-	{from: 14, to: 0, arrows:'to', label: '*'},
-	{from: 15, to: 0, arrows:'to', label: '*'}	
-  ]);
-
-    var edgesRyu = new vis.DataSet([
-    {from: 0, to: 1, arrows:'to', label: 'D'},
-	{from: 0, to: 12, arrows:'to', label: 'L'},
-	{from: 0, to: 18, arrows:'to', label: 'R'},
-	{from: 1, to: 2, arrows:'to', label: 'DL'},
-	{from: 1, to: 5, arrows:'to', label: 'DR'},
-	{from: 2, to: 3, arrows:'to', label: 'L'},
-	{from: 3, to: 4, arrows:'to', label: 'K'},	
-	{from: 5, to: 6, arrows:'to', label: 'R'},	
-    {from: 6, to: 7, arrows:'to', label: 'P'},
-	{from: 6, to: 8, arrows:'to', label: 'D'},    
-	{from: 8, to: 2, arrows:'to', label: 'DL'},
-    {from: 8, to: 9, arrows:'to', label: 'DR'},	
-	{from: 9, to: 10, arrows:'to', label: 'R'},
-	{from: 9, to: 21, arrows:'to', label: 'P'},
-    {from: 10, to: 11, arrows:'to', label: 'P'},
-	{from: 10, to: 8, arrows:'to', label: 'D'},
-	{from: 12, to: 13, arrows:'to', label: 'DL'},
-	{from: 13, to: 14, arrows:'to', label: 'D'},
-	{from: 14, to: 2, arrows:'to', label: 'DL'},
-	{from: 14, to: 15, arrows:'to', label: 'DR'},
-	{from: 15, to: 16, arrows:'to', label: 'R'},
-	{from: 16, to: 8, arrows:'to', label: 'R'},
-	{from: 16, to: 17, arrows:'to', label: 'P'},	
-	{from: 18, to: 19, arrows:'to', label: 'D'},
-	{from: 19, to: 2, arrows:'to', label: 'DL'},
-	{from: 19, to: 20, arrows:'to', label: 'DR'},
-	{from: 20, to: 6, arrows:'to', label: 'R'},
-	{from: 20, to: 21, arrows:'to', label: 'P'},
-	
-	{from: 1, to: 1, arrows:'to', label: 'D'},
-	{from: 2, to: 1, arrows:'to', label: 'D'},	
-	{from: 3, to: 1, arrows:'to', label: 'D'},	
-	{from: 4, to: 1, arrows:'to', label: 'D'},
-    {from: 5, to: 1, arrows:'to', label: 'D'},    	
-    {from: 7, to: 1, arrows:'to', label: 'D'},	
-    {from: 8, to: 1, arrows:'to', label: 'D'},	
-	{from: 9, to: 1, arrows:'to', label: 'D'},	
-    {from: 11, to: 1, arrows:'to', label: 'D'},	
-	{from: 12, to: 1, arrows:'to', label: 'D'},		
-	{from: 14, to: 1, arrows:'to', label: 'D'},
-	{from: 15, to: 1, arrows:'to', label: 'D'},	
-	{from: 17, to: 1, arrows:'to', label: 'D'},	
-	{from: 19, to: 1, arrows:'to', label: 'D'},
-	{from: 20, to: 1, arrows:'to', label: 'D'},
-	{from: 21, to: 1, arrows:'to', label: 'D'},
-	
-	{from: 1, to: 12, arrows:'to', label: 'L'},
-	{from: 3, to: 12, arrows:'to', label: 'L'},	
-	{from: 4, to: 12, arrows:'to', label: 'L'},
-    {from: 5, to: 12, arrows:'to', label: 'L'},
-    {from: 6, to: 12, arrows:'to', label: 'L'},
-    {from: 7, to: 12, arrows:'to', label: 'L'},	
-    {from: 8, to: 12, arrows:'to', label: 'L'},	
-	{from: 9, to: 12, arrows:'to', label: 'L'},
-	{from: 10, to: 12, arrows:'to', label: 'L'},	
-    {from: 11, to: 12, arrows:'to', label: 'L'},
-	{from: 12, to: 12, arrows:'to', label: 'L'},		
-	{from: 13, to: 12, arrows:'to', label: 'L'},
-	{from: 14, to: 12, arrows:'to', label: 'L'},
-	{from: 15, to: 12, arrows:'to', label: 'L'},
-	{from: 16, to: 12, arrows:'to', label: 'L'},
-	{from: 17, to: 12, arrows:'to', label: 'L'},
-	{from: 18, to: 12, arrows:'to', label: 'L'},
-	{from: 19, to: 12, arrows:'to', label: 'L'},
-	{from: 20, to: 12, arrows:'to', label: 'L'},
-	{from: 21, to: 12, arrows:'to', label: 'L'},
-	
-	{from: 1, to: 18, arrows:'to', label: 'R'},
-	{from: 2, to: 18, arrows:'to', label: 'R'},
-	{from: 3, to: 18, arrows:'to', label: 'R'},	
-	{from: 4, to: 18, arrows:'to', label: 'R'},    
-    {from: 6, to: 18, arrows:'to', label: 'R'},
-    {from: 7, to: 18, arrows:'to', label: 'R'},	
-    {from: 8, to: 18, arrows:'to', label: 'R'},		
-	{from: 10, to: 18, arrows:'to', label: 'R'},
-	{from: 11, to: 18, arrows:'to', label: 'R'},
-    {from: 12, to: 18, arrows:'to', label: 'R'},	
-	{from: 13, to: 18, arrows:'to', label: 'R'},
-	{from: 14, to: 18, arrows:'to', label: 'R'},	
-	{from: 16, to: 18, arrows:'to', label: 'R'},
-	{from: 17, to: 18, arrows:'to', label: 'R'},
-	{from: 18, to: 18, arrows:'to', label: 'R'},
-	{from: 19, to: 18, arrows:'to', label: 'R'},	
-	{from: 21, to: 18, arrows:'to', label: 'R'},
-
-	{from: 0, to: 0, arrows:'to', label: '*'},
-	{from: 1, to: 0, arrows:'to', label: '*'},
-	{from: 2, to: 0, arrows:'to', label: '*'},	
-	{from: 3, to: 0, arrows:'to', label: '*'},	
-	{from: 4, to: 0, arrows:'to', label: '*'},
-    {from: 5, to: 0, arrows:'to', label: '*'},
-    {from: 6, to: 0, arrows:'to', label: '*'},
-    {from: 7, to: 0, arrows:'to', label: '*'},	
-    {from: 8, to: 0, arrows:'to', label: '*'},	
-	{from: 9, to: 0, arrows:'to', label: '*'},
-	{from: 10, to: 0, arrows:'to', label: '*'},
-    {from: 11, to: 0, arrows:'to', label: '*'},	
-	{from: 12, to: 0, arrows:'to', label: '*'},	
-	{from: 13, to: 0, arrows:'to', label: '*'},
-	{from: 14, to: 0, arrows:'to', label: '*'},
-	{from: 15, to: 0, arrows:'to', label: '*'},
-	{from: 16, to: 0, arrows:'to', label: '*'},
-	{from: 17, to: 0, arrows:'to', label: '*'},
-	{from: 18, to: 0, arrows:'to', label: '*'},
-	{from: 19, to: 0, arrows:'to', label: '*'},
-	{from: 20, to: 0, arrows:'to', label: '*'},
-	{from: 21, to: 0, arrows:'to', label: '*'},  ]);
-
-  
-  var containerSagat = document.getElementById('dfaSagat');
-  var containerRyu = document.getElementById('dfaRyu');
-  
-  var dataSagat = {
-    nodes: nodesSagat,
-    edges: edgesSagat
-  };
-  var dataRyu = {
-    nodes: nodesRyu,
-    edges: edgesRyu
-  };
-  
-  var options = {};
-  var networkSagat = new vis.Network(containerSagat, dataSagat, options);
-  var networkRyu = new vis.Network(containerRyu, dataRyu, options);
-</script>
+			<script type="text/javascript">  
+			  var containerSagat = document.getElementById('dfaSagat');
+			  var containerRyu = document.getElementById('dfaRyu');
+			  			  
+			  var options = {};
+			  var networkSagat = new vis.Network(containerSagat, dataSagat, options);
+			  var networkRyu = new vis.Network(containerRyu, dataRyu, options);
+			</script>
 		</div>
 	</body>    
 </html>
