@@ -5,31 +5,17 @@
         <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
         <script type="text/javascript" src="jquery-2.2.1.min.js"></script> 
 		<script type="text/javascript" src="vis.min.js"></script>
-		<script type="text/javascript" src="visualizationData.js"></script>
-		  
-		  <style type="text/css">
-			#dfaSagat {
-			  width: 700px;
-			  height: 500px;
-			  border: 1px solid lightgray;
-			}
-			#dfaRyu {
-			  width: 700px;
-			  height: 500px;
-			  border: 1px solid lightgray;
-			}
-		  </style>
+		<script type="text/javascript" src="visualizationData.js"></script>		  
+		<link rel="stylesheet" type="text/css" href="style.css">
     </head>
     	
 	<script>		
 	
 	// TODO
-	// Do a better job displaying special move so it doesn't disappear immediately
-	// Show actual gifs for the moves
+	// Do a better job displaying special move so it doesn't disappear immediately	
 	// R
 	// Clean up code, too many global variables, not enough documentation, hard to follow
-	// Styling
-	// Move DFA visualization to separate file
+	// Styling	
 	
 	var buttons = ["X", "Circle", "Square", "Triangle", "L1", "R1", "L2", "R2", "Share", "Options", "L3", "R3", "Up", "Down", "Left", "Right", "Home", "Touchpad"];
     var previouslyPressed = [false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false];
@@ -195,12 +181,20 @@
 		var p = document.getElementById("playerSelect").value;
 		if (p === "ryu") {
 			selectedPlayer = 0;			
+			
 			$('#dfaRyu').show();
 			$('#dfaSagat').hide();
+			
+			$('#ryuMoveset').show();
+			$('#sagatMoveset').hide();
 		} else if (p === "sagat") {
-			selectedPlayer = 1;			
+			selectedPlayer = 1;		
+			
 			$('#dfaRyu').hide();
 			$('#dfaSagat').show();
+			
+			$('#ryuMoveset').hide();
+			$('#sagatMoveset').show();
 		}
 	}
 	
@@ -314,6 +308,7 @@
 				<button type="button" onclick="$('#controllerInfo').toggle();">Controller Info</button>
 				<button type="button" onclick="$('#programInfo').toggle();">Program Info</button>
 				<button type="button" onclick="$('#dfaContainer').toggle();">DFA Visualization</button>
+				<button type="button" onclick="$('#moveSets').toggle();">Show Move Set</button>
 			</div>
 			
 			<div id="controllerInfo" style="display: none;"></div>
@@ -329,7 +324,7 @@
 				  vis.js (Used for DFA diagrams) - <a href="http://visjs.org/">http://visjs.org/</a> <br>
 				</p>
 			</div>
-			
+									
 			<br/>
 			
 			Player: <select id="playerSelect" onchange="updatePlayer()">
@@ -337,8 +332,29 @@
 			  <option value="sagat">Sagat</option>
 			</select>		
 			
-			<br/><br/>
+			<br/>
 			
+			<div id="moveSets" style="display: none;">
+			  <div id="ryuMoveset"> 
+			    <p>
+				HADOKEN: (Down) (Down-Right) (Right) + (Punch) <br><br>
+				SHAKUNETSU HADOKEN: (Left) (Down-Left) (Down) (Down-Right) (Right) + (Punch) <br><br>
+				SHORYUKEN: (Right) (Down) (Down-Right) + (Punch) <br><br>
+				HURRICANE KICK: (Down) (Down-Right) (Right) + (Kick) <br><br>
+				SHINKU HADOKEN: (Down) (Down-Right) (Right) (Down) (Down-Right) (Right) + (Punch)
+				</p>
+			  </div>
+			  <div id="sagatMoveset" style="display: none;"> 
+			    <p>
+				  TIGER SHOT: (Down) (Down-Right) (Right) + (Punch) <br><br>
+				  GROUND TIGER SHOT: (Down) (Down-Right) (Right) + (Kick) <br><br>
+				  TIGER UPPERCUT: (Right) (Down) (Down-Right) + (Punch) <br><br>
+				  TIGER KNEE CRUSH: (Down) (Down-Right) (Right) (Up-Right) + (Kick) <br><br>
+				  TIGER GENOCIDE: (Down) (Down-Right) (Right) (Down) (Down-Right) (Right) + (Punch)
+				</p>
+			  </div>
+			</div>
+		
 			<div id="buttonDisplay" style="font-size:200%"></div>	
 			<div id="move" style="font-size:300%">Special Move:</div>	
 			<br/>
@@ -349,6 +365,9 @@
 			</div>
 			
 			<script type="text/javascript">  
+			  // Build the DFA diagrams
+			  //DFA data variables stored in visualizationData.js
+			  
 			  var containerSagat = document.getElementById('dfaSagat');
 			  var containerRyu = document.getElementById('dfaRyu');
 			  			  
